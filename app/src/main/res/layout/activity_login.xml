@@ -1,0 +1,167 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background_dark"
+    android:scrollbars="none"
+    tools:context=".auth.LoginActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="220dp"
+            android:layout_marginTop="56dp"
+            android:src="@drawable/ic_launcher_background"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="48dp"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:text="Welcome Back!"
+            android:fontFamily="@font/roboto_bold"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
+            android:textSize="14sp"
+            android:textColor="@color/white_60"
+            android:text="We are happy to see you again"
+            android:fontFamily="@font/roboto_regular"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Email"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:layout_marginTop="40dp"
+            android:layout_marginHorizontal="16dp"
+            android:textStyle="bold"
+            android:fontFamily="@font/roboto_bold"
+            />
+
+        <EditText
+            android:id="@+id/et_email"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="16dp"
+            android:background="@drawable/bg_edit_text"
+            android:hint="Email"
+            android:textColorHint="@color/white_60"
+            android:inputType="textEmailAddress"
+            android:textColor="@color/white"
+            android:layout_marginHorizontal="16dp"
+            android:fontFamily="@font/roboto_regular"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Password"
+            android:textColor="@color/white"
+            android:textSize="14sp"
+            android:layout_marginTop="16dp"
+            android:layout_marginHorizontal="16dp"
+            android:textStyle="bold"
+            android:fontFamily="@font/roboto_bold"
+            />
+
+        <EditText
+            android:id="@+id/et_password"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:padding="16dp"
+            android:background="@drawable/bg_edit_text"
+            android:hint="Password"
+            android:textColorHint="@color/white_60"
+            android:inputType="textPassword"
+            android:textColor="@color/white"
+            android:layout_marginHorizontal="16dp"
+            android:fontFamily="@font/roboto_regular"
+            />
+
+        <TextView
+            android:id="@+id/tv_forgot_password"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:textColor="@color/white_60"
+            android:textSize="14sp"
+            android:text="Forgot password?"
+            android:layout_gravity="end"
+            android:layout_marginEnd="16dp"
+            android:fontFamily="@font/roboto_regular"
+            />
+
+        <Button
+            android:id="@+id/btn_login"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="32dp"
+            android:layout_marginHorizontal="16dp"
+            android:text="Login"
+            android:textAllCaps="false"
+            android:textStyle="bold"
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            app:backgroundTint="@null"
+            android:background="@drawable/bg_btn_primary"
+            android:fontFamily="@font/roboto_bold"
+            />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="56dp"
+            android:gravity="center_horizontal"
+            android:layout_marginHorizontal="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/white_60"
+                android:textSize="14sp"
+                android:text="Don't have an account? "
+                android:layout_gravity="center_horizontal"
+                android:fontFamily="@font/roboto_regular"
+                />
+
+            <TextView
+                android:id="@+id/tv_sign_up"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:textColor="@color/white_60"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:text="Sign Up"
+                android:layout_gravity="center_horizontal"
+                android:fontFamily="@font/roboto_bold"
+                />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+</ScrollView>
