@@ -9,10 +9,10 @@
     tools:context=".SplashActivity">
 
     <ImageView
-        android:layout_width="285dp"
-        android:layout_height="285dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:src="@color/primary"
+        android:src="@drawable/logo_cinemate"
         />
 
 </RelativeLayout>

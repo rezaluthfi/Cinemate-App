@@ -5,12 +5,6 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cinemate.databinding.SlideItemBinding
 
-data class OnboardingItem(
-    val image: Int,
-    val title: String,
-    val description: String
-)
-
 class SliderAdapter(
     private val onboardingItems: List<OnboardingItem>
 ) : RecyclerView.Adapter<SliderAdapter.SliderViewHolder>() {
