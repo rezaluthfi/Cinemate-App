@@ -158,47 +158,11 @@
                     android:layout_below="@+id/ll_time"
                     android:text="Status"
                     android:textSize="14sp"
-                    android:textColor="@color/yellow"
+                    android:textColor="@color/green"
                     android:fontFamily="@font/roboto_bold"
                     android:layout_marginTop="16dp" />
 
-                <Button
-                    android:id="@+id/btn_cancel_ticket"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_status"
-                    android:layout_toStartOf="@id/btn_print_ticket"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"
-                    android:layout_marginEnd="16dp"
-                    android:background="@drawable/bg_btn_secondary_danger"
-                    app:backgroundTint="@null"
-                    android:text="Batalkan"
-                    android:textSize="14sp"
-                    android:textColor="@color/danger"
-                    android:textAllCaps="false"
-                    android:fontFamily="@font/roboto_regular" />
-
-
-                <Button
-                    android:id="@+id/btn_print_ticket"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_below="@+id/tv_status"
-                    android:layout_alignParentEnd="true"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="8dp"
-                    android:background="@drawable/bg_btn_primary"
-                    android:text="Cetak"
-                    android:textSize="14sp"
-                    android:textColor="@color/white"
-                    android:textAllCaps="false"
-                    android:fontFamily="@font/roboto_regular" />
-
-
             </RelativeLayout>
-
-
 
         </LinearLayout>
 

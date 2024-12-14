@@ -305,7 +305,7 @@
                         android:layout_height="20dp"
                         android:layout_marginStart="16dp"
                         android:layout_marginEnd="8dp"
-                        android:background="@drawable/seat_taken"/>
+                        android:background="@drawable/seat_booked"/>
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -316,7 +316,6 @@
                 </LinearLayout>
 
             </LinearLayout>
-
 
             <!-- Button Reservation Ticket -->
             <Button
@@ -332,6 +331,7 @@
                 android:textSize="14sp"
                 android:textColor="@color/white"
                 android:background="@drawable/bg_btn_primary"
+                app:backgroundTint="@null"
                 android:fontFamily="@font/roboto_bold"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

@@ -28,6 +28,19 @@
         android:fontFamily="@font/roboto_bold"
         />
 
+    <TextView
+        android:id="@+id/tv_no_ticket"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:layout_gravity="center"
+        android:paddingHorizontal="16dp"
+        android:text="Belum ada tiket yang dipesan."
+        android:textSize="14sp"
+        android:textColor="@color/white"
+        android:visibility="gone"
+        />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rv_ticket"
         android:layout_width="match_parent"

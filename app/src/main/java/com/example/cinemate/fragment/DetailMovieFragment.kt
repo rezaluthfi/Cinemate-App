@@ -2,10 +2,11 @@ package com.example.cinemate.fragment
 
 import android.os.Build
 import android.os.Bundle
-import android.util.TypedValue
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
 import android.widget.GridLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -14,10 +15,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.cinemate.R
 import com.example.cinemate.databinding.Example7CalendarDayBinding
 import com.example.cinemate.databinding.FragmentDetailMovieBinding
+import com.example.cinemate.model.AppDatabase
+import com.example.cinemate.model.Ticket
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -26,6 +30,9 @@ import com.kizitonwose.calendar.core.atStartOfMonth
 import com.kizitonwose.calendar.core.firstDayOfWeekFromLocale
 import com.kizitonwose.calendar.view.ViewContainer
 import com.kizitonwose.calendar.view.WeekDayBinder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -39,6 +46,7 @@ class DetailMovieFragment : Fragment() {
     private var selectedDate = LocalDate.now()
     private var selectedTime: TextView? = null // Variabel untuk menyimpan waktu yang dipilih
     private var selectedSeats = mutableListOf<TextView>() // Menyimpan kursi yang dipilih
+    private var bookedSeats = mutableListOf<String>() // Menyimpan kursi yang sudah dipesan
 
     @RequiresApi(Build.VERSION_CODES.O)
     private val dateFormatter = DateTimeFormatter.ofPattern("dd")
@@ -81,6 +89,9 @@ class DetailMovieFragment : Fragment() {
             // Setup pilihan jam
             setupTimeOptions()
 
+            // Ambil kursi yang sudah dipesan
+            loadBookedSeats()
+
             // Setup kursi
             setupSeats()
         }
@@ -88,7 +99,96 @@ class DetailMovieFragment : Fragment() {
         // Setup kalender untuk memilih tanggal
         setupDateSelection()
 
+        // Setup tombol untuk mendapatkan tiket
+        setupGetTicketButton()
+
         return binding.root
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun loadBookedSeats() {
+        lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+            val tickets = db.ticketDao().getAllTickets()
+            bookedSeats.clear()
+
+            val movieTitle = binding.tvMovieTitle.text.toString()
+            val selectedDateString = selectedDate.toString()
+            val selectedTimeString = selectedTime?.text.toString()
+            val selectedCinemaString = binding.spinnerCinema.text.toString()
+
+            tickets.forEach { ticket ->
+                // Pastikan semua kondisi pencocokan presisi
+                if (ticket.movieTitle.trim() == movieTitle.trim() &&
+                    ticket.selectedDate.trim() == selectedDateString.trim() &&
+                    ticket.selectedTime.trim() == selectedTimeString.trim() &&
+                    ticket.selectedCinema.trim() == selectedCinemaString.trim()) {
+
+                    bookedSeats.addAll(ticket.selectedSeats.split(", "))
+                }
+            }
+
+            // Setup tampilan kursi
+            setupSeats()
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setupGetTicketButton() {
+        val btnGetTicket: Button = binding.btnGetTicket
+        btnGetTicket.setOnClickListener {
+            // Validasi apakah semua data sudah diisi
+            if (selectedDate == null || selectedTime == null || selectedSeats.isEmpty()) {
+                Toast.makeText(requireContext(), "Silakan pilih tanggal, waktu, dan kursi terlebih dahulu", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Validasi apakah bioskop sudah dipilih
+            val selectedCinema = binding.spinnerCinema.text.toString()
+            if (selectedCinema.isEmpty()) {
+                Toast.makeText(requireContext(), "Silakan pilih bioskop terlebih dahulu", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            val movieTitle = binding.tvMovieTitle.text.toString()
+            val selectedDateString = selectedDate.toString() // Format sesuai kebutuhan
+            val selectedTimeString = selectedTime?.text.toString()
+            val selectedSeatsString = selectedSeats.joinToString(", ") { it.text.toString() }
+
+            // Buat objek tiket dengan status "Dipesan"
+            val ticket = Ticket(
+                movieTitle = movieTitle,
+                selectedDate = selectedDateString,
+                selectedTime = selectedTimeString,
+                selectedSeats = selectedSeatsString,
+                selectedCinema = selectedCinema,
+                status = "Belum Dicetak" // Set status tiket
+            )
+
+            // Cek apakah kursi yang dipilih sudah dipesan
+            lifecycleScope.launch {
+                val db = AppDatabase.getDatabase(requireContext())
+                val existingTickets = db.ticketDao().getAllTickets() // Ambil semua tiket
+                val bookedSeats = existingTickets.flatMap {
+                    if (it.movieTitle == movieTitle && it.selectedDate == selectedDateString && it.selectedTime == selectedTimeString && it.selectedCinema == selectedCinema) {
+                        it.selectedSeats.split(", ") // Ambil semua kursi yang sudah dipesan untuk film yang sama, tanggal, waktu, dan bioskop
+                    } else {
+                        emptyList() // Jika film, tanggal, waktu, atau bioskop tidak sama, kembalikan daftar kosong
+                    }
+                }
+
+                // Cek apakah ada kursi yang dipilih sudah dipesan
+                val alreadyBookedSeats = selectedSeats.map { it.text.toString() }.filter { bookedSeats.contains(it) }
+
+                if (alreadyBookedSeats.isNotEmpty()) {
+                    Toast.makeText(requireContext(), "Kursi ${alreadyBookedSeats.joinToString(", ")} sudah dipesan sebelumnya!", Toast.LENGTH_SHORT).show()
+                } else {
+                    // Simpan tiket ke database
+                    db.ticketDao().insert(ticket)
+                    Toast.makeText(requireContext(), "Tiket berhasil dipesan!", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
     }
 
     private fun setupTimeOptions() {
@@ -141,29 +241,39 @@ class DetailMovieFragment : Fragment() {
         leftSeatsContainer.removeAllViews() // Menghapus semua tampilan kursi yang ada sebelumnya
         rightSeatsContainer.removeAllViews() // Menghapus semua tampilan kursi yang ada sebelumnya
 
-        // Contoh kursi yang tersedia dan terisi
+        // Contoh kursi yang tersedia
         val leftSeats = listOf("A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5") // Daftar kursi kiri
         val rightSeats = listOf("C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5") // Daftar kursi kanan
-        val takenSeats = listOf("A2", "A4", "A5", "B3", "B5", "C1", "C5", "D4") // Contoh kursi yang sudah terisi
 
         // Menambahkan kursi di sebelah kiri
         leftSeats.forEach { seat ->
-            val seatTextView = createSeatTextView(seat, takenSeats)
+            val seatTextView = createSeatTextView(seat)
             leftSeatsContainer.addView(seatTextView) // Menambahkan TextView kursi ke GridLayout kiri
         }
 
         // Menambahkan kursi di sebelah kanan
         rightSeats.forEach { seat ->
-            val seatTextView = createSeatTextView(seat, takenSeats)
+            val seatTextView = createSeatTextView(seat)
             rightSeatsContainer.addView(seatTextView) // Menambahkan TextView kursi ke GridLayout kanan
         }
     }
 
-    private fun createSeatTextView(seat: String, takenSeats: List<String>): TextView {
+    private fun createSeatTextView(seat: String): TextView {
         return TextView(requireContext()).apply {
             text = seat
             setPadding(16, 8, 16, 8)
-            setBackgroundResource(if (takenSeats.contains(seat)) R.drawable.seat_taken else R.drawable.seat_available)
+            // Set background berdasarkan status kursi (tersedia atau terisi)
+            // Check resource IDs and log values for debugging
+            Log.d("DetailMovieFragment", "Booked seats: $bookedSeats")
+            Log.d("DetailMovieFragment", "Current seat: $seat")
+
+            if (bookedSeats.contains(seat)) {
+                Log.d("DetailMovieFragment", "Seat $seat is booked.")
+                setBackgroundResource(R.drawable.seat_booked) // Set background kursi terisi
+            } else {
+                Log.d("DetailMovieFragment", "Seat $seat is available.")
+                setBackgroundResource(R.drawable.seat_available) // Set background kursi tersedia
+            }
             setTextColor(ContextCompat.getColor(requireContext(), R.color.white)) // Warna teks
             textSize = 14f // Set ukuran teks
             layoutParams = GridLayout.LayoutParams().apply {
@@ -173,7 +283,7 @@ class DetailMovieFragment : Fragment() {
             }
 
             setOnClickListener {
-                if (takenSeats.contains(seat)) {
+                if (bookedSeats.contains(seat)) {
                     // Tampilkan toast jika kursi sudah terisi saat diklik
                     Toast.makeText(requireContext(), "Kursi $seat sudah terisi", Toast.LENGTH_SHORT).show()
                 } else {
@@ -214,13 +324,6 @@ class DetailMovieFragment : Fragment() {
             firstDayOfWeekFromLocale()
         )
         binding.exSevenCalendar.scrollToDate(LocalDate.now())
-    }
-
-    @RequiresApi(Build.VERSION_CODES.O)
-    private fun getWeekPageTitle(weekDays: List<WeekDay>): String {
-        val startDate = weekDays.first().date
-        val endDate = weekDays.last().date
-        return "${dateFormatter.format(startDate)} - ${dateFormatter.format(endDate)}"
     }
 
     private fun setupCinemaDropdown(cinemas: List<String>) {

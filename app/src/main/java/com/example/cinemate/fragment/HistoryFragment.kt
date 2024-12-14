@@ -1,60 +1,102 @@
 package com.example.cinemate.fragment
 
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.TextView
+import android.widget.Toast
+import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cinemate.R
+import com.example.cinemate.adapter.TicketHistoryAdapter
+import com.example.cinemate.databinding.FragmentHistoryBinding
+import com.example.cinemate.model.AppDatabase
+import com.example.cinemate.model.TicketHistory
+import kotlinx.coroutines.launch
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [HistoryFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class HistoryFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
 
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private var _binding: FragmentHistoryBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var ticketHistoryAdapter: TicketHistoryAdapter
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_history, container, false)
+    ): View {
+        _binding = FragmentHistoryBinding.inflate(inflater, container, false)
+
+        // Setup RecyclerView
+        binding.rvTicketHistory.layoutManager = LinearLayoutManager(requireContext())
+        ticketHistoryAdapter = TicketHistoryAdapter(emptyList()) { ticketHistory ->
+            showDeleteConfirmation(ticketHistory) // Callback untuk tombol hapus riwayat tiket
+        }
+        binding.rvTicketHistory.adapter = ticketHistoryAdapter
+
+        loadTicketHistories()
+
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment HistoryFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            HistoryFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    private fun loadTicketHistories() {
+        lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+            val ticketHistories = db.ticketHistoryDao().getAllTicketHistories()
+            // Cek apakah daftar riwayat tiket kosong
+            if (ticketHistories.isEmpty()) {
+                binding.tvNoHistoryTicket.visibility = View.VISIBLE // Tampilkan TextView jika kosong
+                binding.rvTicketHistory.visibility = View.GONE // Sembunyikan RecyclerView
+            } else {
+                binding.tvNoHistoryTicket.visibility = View.GONE // Sembunyikan TextView jika tidak kosong
+                binding.rvTicketHistory.visibility = View.VISIBLE // Tampilkan RecyclerView
+                ticketHistoryAdapter = TicketHistoryAdapter(ticketHistories) { ticketHistory ->
+                    showDeleteConfirmation(ticketHistory) // Callback untuk tombol hapus riwayat tiket
                 }
+                binding.rvTicketHistory.adapter = ticketHistoryAdapter
             }
+        }
+    }
+
+    private fun showDeleteConfirmation(ticketHistory: TicketHistory) {
+        // Inflate layout dialog
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_confirm_delete_history_ticket, null)
+
+        // Create dialog
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Set up dialog buttons
+        val btnYes: Button = dialogView.findViewById(R.id.btn_yes)
+        val btnCancel: TextView = dialogView.findViewById(R.id.btn_cancel)
+
+        btnYes.setOnClickListener {
+            deleteTicketHistory(ticketHistory) // Hapus riwayat tiket jika pengguna mengonfirmasi
+            dialog.dismiss() // Tutup dialog
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss() // Tutup dialog jika pengguna membatalkan
+        }
+
+        dialog.show() // Tampilkan dialog
+    }
+
+    private fun deleteTicketHistory(ticketHistory: TicketHistory) {
+        lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+            db.ticketHistoryDao().delete(ticketHistory) // Panggil metode delete dari DAO
+            Toast.makeText(requireContext(), "Riwayat tiket berhasil dihapus!", Toast.LENGTH_SHORT).show()
+            loadTicketHistories() // Memuat ulang daftar riwayat tiket setelah penghapusan
+        }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null // Mengatur binding ke null untuk menghindari memory leaks
     }
 }
