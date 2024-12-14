@@ -1,26 +1,85 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_dark"
-    android:padding="8dp">
+    android:background="@color/background_dark">
 
-    <ImageView
-        android:id="@+id/iv_movie_poster"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_movie"
         android:layout_width="wrap_content"
-        android:layout_height="300dp"
+        android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
-        android:src="@drawable/ic_launcher_background" />
+        android:backgroundTint="@color/background_dark"
+        app:cardCornerRadius="8dp"
+        app:cardElevation="0dp">
+
+        <ImageView
+            android:id="@+id/iv_movie_poster"
+            android:layout_width="wrap_content"
+            android:layout_height="280dp"
+            android:src="@drawable/img_dummy_poster_movie" />
+
+    </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/tv_movie_title"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/iv_movie_poster"
+        android:layout_below="@id/cv_movie"
         android:layout_marginTop="8dp"
-        android:layout_centerHorizontal="true"
+        android:layout_alignStart="@+id/cv_movie"
         android:textColor="@color/white"
         android:textSize="16sp"
         android:text="Movie Title"
         android:fontFamily="@font/roboto_bold" />
+
+    <TextView
+        android:id="@+id/tv_movie_rating"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/tv_movie_title"
+        android:layout_marginTop="4dp"
+        android:layout_alignStart="@+id/cv_movie"
+        android:gravity="center_vertical"
+        android:drawableLeft="@drawable/icon_star_small"
+        android:drawablePadding="4dp"
+        android:textColor="@color/white_60"
+        android:textSize="14sp"
+        android:text="Movie Rating"
+        android:fontFamily="@font/roboto_regular" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_alignStart="@+id/tv_movie_rating"
+        android:layout_below="@+id/tv_movie_rating"
+        android:layout_marginTop="4dp"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/tv_movie_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="14sp"
+            android:textColor="@color/white_60"
+            android:text="Duration" />
+
+        <View
+            android:id="@+id/divider"
+            android:layout_width="1dp"
+            android:layout_height="16dp"
+            android:layout_marginStart="8dp"
+            android:background="@color/white_60" />
+
+        <TextView
+            android:id="@+id/tv_movie_genre"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textSize="14sp"
+            android:textColor="@color/white_60"
+            android:text="Categories" />
+    </LinearLayout>
 
 </RelativeLayout>

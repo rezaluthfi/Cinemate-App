@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/filter_name"
+        android:title="Name (A-Z)" />
+    <item
+        android:id="@+id/filter_rating"
+        android:title="Rating (High to Low)" />
+    <item
+        android:id="@+id/filter_duration"
+        android:title="Duration (Short to Long)" />
+    <item
+        android:id="@+id/filter_reset"
+        android:title="Reset" />
+</menu>

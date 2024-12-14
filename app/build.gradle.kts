@@ -41,6 +41,8 @@ android {
 
 dependencies {
 
+    implementation("com.github.skydoves:powerspinner:1.2.7")
+    implementation("com.kizitonwose.calendar:view:2.6.0")
     implementation(libs.androidx.viewpager2)
     implementation(libs.dotsindicator)
     implementation(libs.flexbox)

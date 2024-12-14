@@ -13,24 +13,24 @@ import com.example.cinemate.databinding.ItemMovieBinding
 import com.example.cinemate.model.Movie
 import com.google.android.flexbox.FlexboxLayout
 
-class LatestMoviesAdapter(
-    private var latestMovies: List<Movie>,
+class GenreMoviesAdapter(
+    private var genreMovies: List<Movie>,
     private val onItemClick: (Movie) -> Unit // Menambahkan parameter untuk menangani klik
-) : RecyclerView.Adapter<LatestMoviesAdapter.LatestViewHolder>() {
+) : RecyclerView.Adapter<GenreMoviesAdapter.GenreViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LatestViewHolder {
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GenreViewHolder {
         val binding = ItemMovieBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return LatestViewHolder(binding)
+        return GenreViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: LatestViewHolder, position: Int) {
-        val movie = latestMovies[position]
+    override fun onBindViewHolder(holder: GenreViewHolder, position: Int) {
+        val movie = genreMovies[position]
         holder.bind(movie)
     }
 
-    override fun getItemCount(): Int = latestMovies.size
+    override fun getItemCount(): Int = genreMovies.size
 
-    inner class LatestViewHolder(private val binding: ItemMovieBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class GenreViewHolder(private val binding: ItemMovieBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(movie: Movie) {
             binding.tvMovieTitle.text = movie.title
             binding.tvMovieDescription.text = movie.description
@@ -72,7 +72,7 @@ class LatestMoviesAdapter(
     }
 
     fun updateMovies(newMovies: List<Movie>) {
-        latestMovies = newMovies
+        genreMovies = newMovies
         notifyDataSetChanged()
     }
 }

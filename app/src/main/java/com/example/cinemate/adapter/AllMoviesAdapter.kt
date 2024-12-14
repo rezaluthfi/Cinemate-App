@@ -13,25 +13,13 @@ import com.example.cinemate.databinding.ItemMovieBinding
 import com.example.cinemate.model.Movie
 import com.google.android.flexbox.FlexboxLayout
 
-class LatestMoviesAdapter(
-    private var latestMovies: List<Movie>,
+class AllMoviesAdapter(
+    private var movies: List<Movie>,
     private val onItemClick: (Movie) -> Unit // Menambahkan parameter untuk menangani klik
-) : RecyclerView.Adapter<LatestMoviesAdapter.LatestViewHolder>() {
+) : RecyclerView.Adapter<AllMoviesAdapter.MovieViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LatestViewHolder {
-        val binding = ItemMovieBinding.inflate(LayoutInflater.from(parent.context), parent, false)
-        return LatestViewHolder(binding)
-    }
-
-    override fun onBindViewHolder(holder: LatestViewHolder, position: Int) {
-        val movie = latestMovies[position]
-        holder.bind(movie)
-    }
-
-    override fun getItemCount(): Int = latestMovies.size
-
-    inner class LatestViewHolder(private val binding: ItemMovieBinding) : RecyclerView.ViewHolder(binding.root) {
-        fun bind(movie: Movie) {
+    class MovieViewHolder(private val binding: ItemMovieBinding) : RecyclerView.ViewHolder(binding.root) {
+        fun bind(movie: Movie, onItemClick: (Movie) -> Unit) {
             binding.tvMovieTitle.text = movie.title
             binding.tvMovieDescription.text = movie.description
             binding.tvMovieDuration.text = "${movie.duration} min"
@@ -59,8 +47,7 @@ class LatestMoviesAdapter(
                 binding.flCinemas.addView(cinemaTextView) // Menambahkan TextView ke FlexboxLayout
             }
 
-            // Memuat gambar poster film
-            Glide.with(binding.root.context)
+            Glide.with(binding.ivMoviePoster.context)
                 .load(movie.posterUrl)
                 .into(binding.ivMoviePoster)
 
@@ -71,8 +58,19 @@ class LatestMoviesAdapter(
         }
     }
 
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MovieViewHolder {
+        val binding = ItemMovieBinding.inflate(LayoutInflater.from(parent.context), parent, false)
+        return MovieViewHolder(binding)
+    }
+
+    override fun onBindViewHolder(holder: MovieViewHolder, position: Int) {
+        holder.bind(movies[position], onItemClick) // Mengoper fungsi klik ke bind
+    }
+
+    override fun getItemCount(): Int = movies.size
+
     fun updateMovies(newMovies: List<Movie>) {
-        latestMovies = newMovies
+        movies = newMovies
         notifyDataSetChanged()
     }
 }

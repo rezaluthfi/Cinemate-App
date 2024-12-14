@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.0"
+calendarview = "2.6.0"
 dotsindicator = "4.2"
 flexbox = "3.0.0"
 glide = "4.16.0"
@@ -21,6 +22,7 @@ viewpager2 = "1.1.0"
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 androidx-viewpager2 = { module = "androidx.viewpager2:viewpager2", version.ref = "viewpager2" }
+calendarview = { module = "com.github.kizitonwose:CalendarView", version.ref = "calendarview" }
 converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "retrofit" }
 dotsindicator = { module = "com.tbuonomo:dotsindicator", version.ref = "dotsindicator" }
 flexbox = { module = "com.google.android.flexbox:flexbox", version.ref = "flexbox" }

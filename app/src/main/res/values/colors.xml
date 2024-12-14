@@ -9,4 +9,6 @@
     <color name="background_dark_lighter">#201D32</color>
     <color name="gray">#B5FFFFFF</color>
     <color name="danger">#F15A5A</color>
+    <color name="yellow">#FACD26</color>
+    <color name="green">#2ECC71</color>
 </resources>

@@ -8,7 +8,8 @@ import com.example.cinemate.databinding.ItemTrendingMovieBinding
 import com.example.cinemate.model.Movie
 
 class TrendingMoviesAdapter(
-    private var trendingMovies: List<Movie>
+    private var trendingMovies: List<Movie>,
+    private val onItemClick: (Movie) -> Unit // Menambahkan parameter untuk menangani klik
 ) : RecyclerView.Adapter<TrendingMoviesAdapter.TrendingViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): TrendingViewHolder {
@@ -18,7 +19,7 @@ class TrendingMoviesAdapter(
 
     override fun onBindViewHolder(holder: TrendingViewHolder, position: Int) {
         if (trendingMovies.isNotEmpty()) {
-            val movie = trendingMovies[position % trendingMovies.size] // Infinite scrolling
+            val movie = trendingMovies[position % trendingMovies.size]
             holder.bind(movie)
         }
     }
@@ -31,10 +32,20 @@ class TrendingMoviesAdapter(
         }
     }
 
-    class TrendingViewHolder(private val binding: ItemTrendingMovieBinding) : RecyclerView.ViewHolder(binding.root) {
+    inner class TrendingViewHolder(private val binding: ItemTrendingMovieBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(movie: Movie) {
-            binding.tvMovieTitle.text = movie.title // Pastikan judul diatur di sini
-            Glide.with(binding.root.context).load(movie.posterUrl).into(binding.ivMoviePoster)
+            binding.tvMovieTitle.text = movie.title
+            binding.tvMovieGenre.text = movie.genre
+            binding.tvMovieRating.text = movie.rating.toString()
+            binding.tvMovieDuration.text = "${movie.duration} min"
+            Glide.with(binding.root.context)
+                .load(movie.posterUrl)
+                .into(binding.ivMoviePoster)
+
+            // Menangani klik pada item
+            binding.root.setOnClickListener {
+                onItemClick(movie) // Memanggil fungsi klik dengan objek movie
+            }
         }
     }
 

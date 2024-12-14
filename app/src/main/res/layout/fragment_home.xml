@@ -11,8 +11,16 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
+        android:paddingHorizontal="16dp"
         android:orientation="vertical" >
+
+        <!-- ProgressBar untuk menunjukkan loading -->
+        <ProgressBar
+            android:id="@+id/progress_bar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -45,20 +53,40 @@
                 android:layout_height="56dp"
                 android:layout_alignParentEnd="true"
                 android:layout_centerVertical="true"
-                android:src="@drawable/bg_avatar"
+                android:src="@drawable/img_avatar"
                 />
 
         </RelativeLayout>
 
+        <TextView
+            android:id="@+id/tv_no_movie"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:paddingHorizontal="16dp"
+            android:text="Oops! No movies found."
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:visibility="gone"
+            />
+
         <SearchView
+            android:id="@+id/search_view"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="32dp"
             android:background="@drawable/bg_edit_text"
             android:queryHint="Search movie..."
+            android:queryBackground="@drawable/bg_edit_text"
             android:iconifiedByDefault="false"
             android:fontFamily="@font/roboto_regular"
             />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_search_results"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:visibility="gone" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -72,30 +100,15 @@
         <androidx.viewpager2.widget.ViewPager2
             android:id="@+id/vp_trending_movies"
             android:layout_width="wrap_content"
-            android:layout_height="380dp"
+            android:layout_height="356dp"
             android:layout_gravity="center_horizontal"
-            android:layout_marginTop="16dp" />
-
-        <com.tbuonomo.viewpagerdotsindicator.WormDotsIndicator
-            android:id="@+id/worm_dots_indicator_trending_movies"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center_horizontal"
-            app:dotsColor="@color/primary"
-            app:dotsCornerRadius="8dp"
-            app:dotsSize="8dp"
-            app:dotsSpacing="4dp"
-            app:dotsStrokeColor="@color/primary"
-            app:dotsStrokeWidth="1dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/vp_trending_movies"
-            />
+            android:layout_marginTop="16dp"
+            android:paddingHorizontal="40dp"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp" >
+            android:layout_marginTop="48dp" >
 
             <TextView
                 android:layout_width="wrap_content"
@@ -107,6 +120,7 @@
                 />
 
             <TextView
+                android:id="@+id/tv_view_all_latest"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
@@ -134,13 +148,14 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Categories"
+                android:text="Genres"
                 android:textColor="@color/white"
                 android:textSize="16sp"
                 android:fontFamily="@font/roboto_bold"
                 />
 
             <TextView
+                android:id="@+id/tv_view_all_genres"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
@@ -152,19 +167,36 @@
 
         </RelativeLayout>
 
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_categories"
+        <com.google.android.flexbox.FlexboxLayout
+            android:id="@+id/fl_genres"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            />
+            app:flexWrap="wrap"
+            app:alignItems="stretch"
+            app:alignContent="stretch">
+
+            <TextView
+                android:id="@+id/tv_genre"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:paddingVertical="8dp"
+                android:paddingHorizontal="16dp"
+                android:text="Genre"
+                android:textSize="14sp"
+                android:textColor="@color/white"
+                android:background="@drawable/bg_chip"
+                android:fontFamily="@font/roboto_regular" />
+
+        </com.google.android.flexbox.FlexboxLayout>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rv_movies_by_category"
+            android:id="@+id/rv_genre_movies"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
             android:nestedScrollingEnabled="false"
+            android:paddingBottom="80dp"
             />
 
     </LinearLayout>

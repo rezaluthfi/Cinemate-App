@@ -10,7 +10,6 @@ data class Movie(
     val posterUrl: String,
     val isTrending: Boolean,
     val isLatest: Boolean,
-    val categories: List<String>,
     val cinemas: List<String>
 )
 
