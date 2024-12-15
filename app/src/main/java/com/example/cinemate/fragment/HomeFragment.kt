@@ -25,6 +25,8 @@ import kotlin.math.abs
 import android.os.Handler
 import android.os.Looper
 import android.util.TypedValue
+import android.widget.ProgressBar
+import android.widget.SearchView
 import android.widget.TextView
 import androidx.core.content.ContextCompat
 import com.example.cinemate.adapter.GenreMoviesAdapter
@@ -41,7 +43,7 @@ class HomeFragment : Fragment() {
     private lateinit var latestMoviesAdapter: LatestMoviesAdapter
     private lateinit var trendingMoviesAdapter: TrendingMoviesAdapter
     private lateinit var genreMoviesAdapter: GenreMoviesAdapter
-    private var movieList: List<Movie> = emptyList()
+    private var movieList: List<Movie> = emptyList() // This will hold the fetched movie data
     private lateinit var viewPager2: ViewPager2
     private lateinit var handler: Handler
 
@@ -50,6 +52,9 @@ class HomeFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentHomeBinding.inflate(inflater, container, false)
+
+        // Inisialisasi ProgressBar
+        val progressBar = binding.progressBar
 
         // Inisialisasi adapter untuk latest movies
         latestMoviesAdapter = LatestMoviesAdapter(emptyList()) { movie ->
@@ -77,8 +82,16 @@ class HomeFragment : Fragment() {
             }
         })
 
-        // Ambil data film dari API
-        getMoviesFromApi()
+        // Ambil data film dari API jika movieList kosong
+        if (movieList.isEmpty()) {
+            getMoviesFromApi(progressBar)
+        } else {
+            // Jika data sudah ada, langsung update adapter
+            updateAdapters()
+        }
+
+        // Setup SearchView
+        setupSearchView()
 
         // After
         binding.tvViewAllGenres.setOnClickListener {
@@ -90,6 +103,91 @@ class HomeFragment : Fragment() {
         }
 
         return binding.root
+    }
+
+    private fun updateAdapters() {
+        latestMoviesAdapter.updateMovies(movieList.filter { !it.isTrending })
+        genreMoviesAdapter.updateMovies(movieList)
+        trendingMoviesAdapter.updateMovies(movieList.filter { it.isTrending })
+    }
+
+    private fun setupSearchView() {
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                if (newText.isNullOrEmpty()) {
+                    showNormalView() // Tampilkan tampilan normal jika tidak ada teks
+                } else {
+                    filterMovies(newText) // Filter film berdasarkan teks pencarian
+                }
+                return true
+            }
+        })
+    }
+
+    private fun filterMovies(query: String) {
+        val filteredMovies = movieList.filter { movie ->
+            movie.title.contains(query, ignoreCase = true) ||
+                    movie.genre.contains(query, ignoreCase = true)
+        }
+
+        // Tampilkan tampilan pencarian
+        showSearchView()
+
+        // Update adapter dengan film yang difilter
+        genreMoviesAdapter.updateMovies(filteredMovies)
+
+        // Cek apakah ada film yang ditemukan
+        if (filteredMovies.isEmpty()) {
+            binding.tvNoMovie.visibility = View.VISIBLE // Tampilkan pesan "No movies found"
+            binding.rvGenreMovies.visibility = View.GONE // Sembunyikan RecyclerView
+        } else {
+            binding.tvNoMovie.visibility = View.GONE // Sembunyikan pesan
+            binding.rvGenreMovies.visibility = View.VISIBLE // Tampilkan RecyclerView
+        }
+    }
+
+    private fun showSearchView() {
+        with(binding) {
+            rvLatestMovies.visibility = View.GONE
+            rvGenreMovies.visibility = View.VISIBLE
+            vpTrendingMovies.visibility = View.GONE
+            tvViewAllGenres.visibility = View.GONE
+            tvViewAllLatest.visibility = View.GONE
+            tvTrendingMovies.visibility = View.GONE
+            tvWelcomeMessage.visibility = View.VISIBLE
+            rlLatestMovies.visibility = View.GONE
+            tvNoMovie.visibility = View.GONE
+            tvGenre.visibility = View.GONE
+            rlGenres.visibility = View.GONE
+            searchView.visibility = View.VISIBLE
+            imgAvatar.visibility = View.VISIBLE
+            tvUsername.visibility = View.VISIBLE
+        }
+    }
+
+    private fun showNormalView() {
+        with(binding) {
+            rvLatestMovies.visibility = View.VISIBLE
+            rvGenreMovies.visibility = View.VISIBLE
+            vpTrendingMovies.visibility = View.VISIBLE
+            tvViewAllGenres.visibility = View.VISIBLE
+            tvViewAllLatest.visibility = View.VISIBLE
+            tvTrendingMovies.visibility = View.VISIBLE
+            tvWelcomeMessage.visibility = View.VISIBLE
+            rlLatestMovies.visibility = View.VISIBLE
+            tvGenre.visibility = View.VISIBLE
+            rlGenres.visibility = View.VISIBLE
+            searchView.visibility = View.VISIBLE
+            imgAvatar.visibility = View.VISIBLE
+            tvUsername.visibility = View.VISIBLE
+        }
+
+        // Update adapter dengan semua film
+        updateAdapters()
     }
 
     private fun navigateToAllMoviesFragment() {
@@ -143,9 +241,50 @@ class HomeFragment : Fragment() {
         viewPager2.getChildAt(0).overScrollMode = RecyclerView.OVER_SCROLL_NEVER
     }
 
-    private fun getMoviesFromApi() {
+    private fun getMoviesFromApi(progressBar: ProgressBar) {
+        // Tampilkan ProgressBar saat memuat data
+        progressBar.visibility = View.VISIBLE
+        with(binding) {
+            rvLatestMovies.visibility = View.GONE
+            rvGenreMovies.visibility = View.GONE
+            vpTrendingMovies.visibility = View.GONE
+            tvViewAllGenres.visibility = View.GONE
+            tvViewAllLatest.visibility = View.GONE
+            tvTrendingMovies.visibility = View.GONE
+            tvWelcomeMessage.visibility = View.GONE
+            rlLatestMovies.visibility = View.GONE
+            tvGenre.visibility = View.GONE
+            rlGenres.visibility = View.GONE
+            searchView.visibility = View.GONE
+            imgAvatar.visibility = View.GONE
+            tvUsername.visibility = View.GONE
+        }
+
         RetrofitInstance.api.getMovies().enqueue(object : Callback<List<Map<String, Any>>> {
             override fun onResponse(call: Call<List<Map<String, Any>>>, response: Response<List<Map<String, Any>>>) {
+                // Sembunyikan ProgressBar setelah mendapatkan respons
+                progressBar.visibility = View.GONE
+
+                // Pastikan binding tidak null sebelum mengaksesnya
+                if (_binding == null) return
+
+                // Tampilkan kembali tampilan lain
+                with(binding) {
+                    rvLatestMovies.visibility = View.VISIBLE
+                    rvGenreMovies.visibility = View.VISIBLE
+                    vpTrendingMovies.visibility = View.VISIBLE
+                    tvViewAllGenres.visibility = View.VISIBLE
+                    tvViewAllLatest.visibility = View.VISIBLE
+                    tvTrendingMovies.visibility = View.VISIBLE
+                    tvWelcomeMessage.visibility = View.VISIBLE
+                    rlLatestMovies.visibility = View.VISIBLE
+                    tvGenre.visibility = View.VISIBLE
+                    rlGenres.visibility = View.VISIBLE
+                    searchView.visibility = View.VISIBLE
+                    imgAvatar.visibility = View.VISIBLE
+                    tvUsername.visibility = View.VISIBLE
+                }
+
                 if (response.isSuccessful) {
                     Log.d("HomeFragment", "Raw response: ${response.body()}")
 
@@ -166,6 +305,9 @@ class HomeFragment : Fragment() {
 
                     Log.d("HomeFragment", "Movies fetched: ${movieList.size}")
 
+                    // Set text tv_username dengan nama pengguna dari SharedPreferences
+                    binding.tvUsername.text = "Hi, ${requireActivity().getSharedPreferences("cinemate_pref", 0).getString("username", "")}!"
+
                     // Filter film trending
                     val trendingMovies = movieList.filter { it.isTrending }
 
@@ -180,6 +322,9 @@ class HomeFragment : Fragment() {
                     // Set adapter untuk RecyclerView
                     latestMoviesAdapter.updateMovies(movieList.filter { !it.isTrending })
 
+                    // Simpan movieList untuk digunakan saat pencarian
+                    this@HomeFragment.movieList = movieList // Store the fetched movie list
+
                     // Setup genres in FlexboxLayout
                     setupGenres(movieList)
                 } else {
@@ -189,6 +334,8 @@ class HomeFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<List<Map<String, Any>>>, t: Throwable) {
+                // Sembunyikan ProgressBar jika terjadi kesalahan
+                progressBar.visibility = View.GONE
                 Log.e("HomeFragment", "Error fetching movies: ${t.message}")
                 Toast.makeText(context, "Error fetching movies: ${t.message}", Toast.LENGTH_SHORT).show()
             }

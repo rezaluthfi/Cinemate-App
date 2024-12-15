@@ -35,17 +35,17 @@ class OnboardingActivity : AppCompatActivity() {
     private fun prepareOnboardingItems() {
         onboardingItems = listOf(
             OnboardingItem(
-                R.drawable.ic_launcher_background,
+                R.drawable.img_onboarding_1,
                 "Welcome to Cinemate",
-                "Your favorite movies in one app"
+                "Your favorite ticket movies in one app"
             ),
             OnboardingItem(
-                R.drawable.ic_launcher_background,
+                R.drawable.img_onboarding_2,
                 "Discover Movies",
                 "Browse through thousands of movies and shows"
             ),
             OnboardingItem(
-                R.drawable.ic_launcher_background,
+                R.drawable.img_onboarding_3,
                 "Join Us Now",
                 "Create an account to get started with Cinemate"
             )

@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="220dp"
             android:layout_marginTop="56dp"
-            android:src="@drawable/ic_launcher_background"
+            android:src="@drawable/img_illustration_login"
             />
 
         <TextView

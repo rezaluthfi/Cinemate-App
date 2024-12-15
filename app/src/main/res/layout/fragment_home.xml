@@ -19,6 +19,7 @@
             android:id="@+id/progress_bar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="48dp"
             android:layout_gravity="center"
             android:visibility="gone" />
 
@@ -38,6 +39,7 @@
                 />
 
             <TextView
+                android:id="@+id/tv_welcome_message"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -49,6 +51,7 @@
                 />
 
             <ImageView
+                android:id="@+id/img_avatar"
                 android:layout_width="56dp"
                 android:layout_height="56dp"
                 android:layout_alignParentEnd="true"
@@ -58,18 +61,6 @@
 
         </RelativeLayout>
 
-        <TextView
-            android:id="@+id/tv_no_movie"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:paddingHorizontal="16dp"
-            android:text="Oops! No movies found."
-            android:textSize="14sp"
-            android:textColor="@color/white"
-            android:visibility="gone"
-            />
-
         <SearchView
             android:id="@+id/search_view"
             android:layout_width="match_parent"
@@ -77,6 +68,7 @@
             android:layout_marginTop="32dp"
             android:background="@drawable/bg_edit_text"
             android:queryHint="Search movie..."
+            app:iconTint="@color/white"
             android:queryBackground="@drawable/bg_edit_text"
             android:iconifiedByDefault="false"
             android:fontFamily="@font/roboto_regular"
@@ -89,6 +81,7 @@
             android:visibility="gone" />
 
         <TextView
+            android:id="@+id/tv_trending_movies"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
@@ -106,6 +99,7 @@
             android:paddingHorizontal="40dp"/>
 
         <RelativeLayout
+            android:id="@+id/rl_latest_movies"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="48dp" >
@@ -141,6 +135,7 @@
             />
 
         <RelativeLayout
+            android:id="@+id/rl_genres"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp" >
@@ -197,6 +192,19 @@
             android:layout_marginTop="16dp"
             android:nestedScrollingEnabled="false"
             android:paddingBottom="80dp"
+            />
+
+        <TextView
+            android:id="@+id/tv_no_movie"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginTop="24dp"
+            android:paddingHorizontal="16dp"
+            android:text="Oops! No movies found."
+            android:textSize="14sp"
+            android:textColor="@color/white"
+            android:visibility="gone"
             />
 
     </LinearLayout>

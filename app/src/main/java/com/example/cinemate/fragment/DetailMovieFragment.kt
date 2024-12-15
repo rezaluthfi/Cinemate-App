@@ -44,9 +44,11 @@ class DetailMovieFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     private var selectedDate = LocalDate.now()
-    private var selectedTime: TextView? = null // Variabel untuk menyimpan waktu yang dipilih
-    private var selectedSeats = mutableListOf<TextView>() // Menyimpan kursi yang dipilih
-    private var bookedSeats = mutableListOf<String>() // Menyimpan kursi yang sudah dipesan
+    private var selectedTime: TextView? = null
+    private var selectedSeats = mutableListOf<TextView>()
+    private var bookedSeats = mutableListOf<String>()
+    private var movieTitle: String = ""
+    private var selectedCinema: String = ""
 
     @RequiresApi(Build.VERSION_CODES.O)
     private val dateFormatter = DateTimeFormatter.ofPattern("dd")
@@ -58,12 +60,10 @@ class DetailMovieFragment : Fragment() {
     ): View {
         _binding = FragmentDetailMovieBinding.inflate(inflater, container, false)
 
-        // Memanggil fungsi setupToolbar
         setupToolbar()
 
-        // Ambil data dari argumen
         arguments?.let {
-            val title = it.getString("movie_title") ?: "Unknown Title"
+            movieTitle = it.getString("movie_title") ?: "Unknown Title"
             val description = it.getString("movie_description") ?: "No Description"
             val genre = it.getString("movie_genre") ?: "Unknown Genre"
             val rating = it.getDouble("movie_rating", 0.0)
@@ -71,35 +71,21 @@ class DetailMovieFragment : Fragment() {
             val posterUrl = it.getString("movie_poster_url") ?: ""
             val cinemas = it.getStringArrayList("movie_cinemas") ?: arrayListOf()
 
-            // Set data ke tampilan
-            binding.tvMovieTitle.text = title
+            binding.tvMovieTitle.text = movieTitle
             binding.tvMovieDescription.text = description
             binding.tvMovieGenre.text = genre
             binding.tvMovieRating.text = rating.toString()
             binding.tvMovieDuration.text = "${duration} min"
 
-            // Memuat gambar poster film
             Glide.with(this)
                 .load(posterUrl)
                 .into(binding.ivMoviePoster)
 
-            // Setup dropdown bioskop
             setupCinemaDropdown(cinemas)
-
-            // Setup pilihan jam
-            setupTimeOptions()
-
-            // Ambil kursi yang sudah dipesan
-            loadBookedSeats()
-
-            // Setup kursi
-            setupSeats()
         }
 
-        // Setup kalender untuk memilih tanggal
+        setupTimeOptions()
         setupDateSelection()
-
-        // Setup tombol untuk mendapatkan tiket
         setupGetTicketButton()
 
         return binding.root
@@ -108,28 +94,36 @@ class DetailMovieFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.O)
     private fun loadBookedSeats() {
         lifecycleScope.launch {
-            val db = AppDatabase.getDatabase(requireContext())
-            val tickets = db.ticketDao().getAllTickets()
-            bookedSeats.clear()
+            try {
+                val db = AppDatabase.getDatabase(requireContext())
+                val tickets = withContext(Dispatchers.IO) {
+                    db.ticketDao().getAllTickets()
+                }
 
-            val movieTitle = binding.tvMovieTitle.text.toString()
-            val selectedDateString = selectedDate.toString()
-            val selectedTimeString = selectedTime?.text.toString()
-            val selectedCinemaString = binding.spinnerCinema.text.toString()
+                bookedSeats.clear()
 
-            tickets.forEach { ticket ->
-                // Pastikan semua kondisi pencocokan presisi
-                if (ticket.movieTitle.trim() == movieTitle.trim() &&
-                    ticket.selectedDate.trim() == selectedDateString.trim() &&
-                    ticket.selectedTime.trim() == selectedTimeString.trim() &&
-                    ticket.selectedCinema.trim() == selectedCinemaString.trim()) {
+                val selectedDateString = selectedDate.toString()
+                val selectedTimeString = selectedTime?.text.toString()
 
+                val matchingTickets = tickets.filter { ticket ->
+                    ticket.movieTitle.trim() == movieTitle.trim() &&
+                            ticket.selectedDate.trim() == selectedDateString.trim() &&
+                            ticket.selectedTime.trim() == selectedTimeString.trim() &&
+                            ticket.selectedCinema.trim() == selectedCinema.trim()
+                }
+
+                matchingTickets.forEach { ticket ->
                     bookedSeats.addAll(ticket.selectedSeats.split(", "))
                 }
-            }
 
-            // Setup tampilan kursi
-            setupSeats()
+                Log.d("DetailMovieFragment", "Booked seats loaded: $bookedSeats")
+
+                withContext(Dispatchers.Main) {
+                    setupSeats()
+                }
+            } catch (e: Exception) {
+                Log.e("DetailMovieFragment", "Error loading booked seats", e)
+            }
         }
     }
 
@@ -144,14 +138,12 @@ class DetailMovieFragment : Fragment() {
             }
 
             // Validasi apakah bioskop sudah dipilih
-            val selectedCinema = binding.spinnerCinema.text.toString()
             if (selectedCinema.isEmpty()) {
                 Toast.makeText(requireContext(), "Silakan pilih bioskop terlebih dahulu", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            val movieTitle = binding.tvMovieTitle.text.toString()
-            val selectedDateString = selectedDate.toString() // Format sesuai kebutuhan
+            val selectedDateString = selectedDate.toString()
             val selectedTimeString = selectedTime?.text.toString()
             val selectedSeatsString = selectedSeats.joinToString(", ") { it.text.toString() }
 
@@ -162,99 +154,128 @@ class DetailMovieFragment : Fragment() {
                 selectedTime = selectedTimeString,
                 selectedSeats = selectedSeatsString,
                 selectedCinema = selectedCinema,
-                status = "Belum Dicetak" // Set status tiket
+                status = "Belum Dicetak"
             )
 
             // Cek apakah kursi yang dipilih sudah dipesan
             lifecycleScope.launch {
                 val db = AppDatabase.getDatabase(requireContext())
-                val existingTickets = db.ticketDao().getAllTickets() // Ambil semua tiket
-                val bookedSeats = existingTickets.flatMap {
-                    if (it.movieTitle == movieTitle && it.selectedDate == selectedDateString && it.selectedTime == selectedTimeString && it.selectedCinema == selectedCinema) {
-                        it.selectedSeats.split(", ") // Ambil semua kursi yang sudah dipesan untuk film yang sama, tanggal, waktu, dan bioskop
+                val existingTickets = db.ticketDao().getAllTickets()
+
+                val bookedSeats = existingTickets.flatMap { existingTicket ->
+                    if (existingTicket.movieTitle == movieTitle &&
+                        existingTicket.selectedDate == selectedDateString &&
+                        existingTicket.selectedTime == selectedTimeString &&
+                        existingTicket.selectedCinema == selectedCinema) {
+                        existingTicket.selectedSeats.split(", ")
                     } else {
-                        emptyList() // Jika film, tanggal, waktu, atau bioskop tidak sama, kembalikan daftar kosong
+                        emptyList()
                     }
                 }
 
                 // Cek apakah ada kursi yang dipilih sudah dipesan
-                val alreadyBookedSeats = selectedSeats.map { it.text.toString() }.filter { bookedSeats.contains(it) }
+                val alreadyBookedSeats = selectedSeats
+                    .map { it.text.toString() }
+                    .filter { bookedSeats.contains(it) }
 
                 if (alreadyBookedSeats.isNotEmpty()) {
-                    Toast.makeText(requireContext(), "Kursi ${alreadyBookedSeats.joinToString(", ")} sudah dipesan sebelumnya!", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        requireContext(),
+                        "Kursi ${alreadyBookedSeats.joinToString(", ")} sudah dipesan sebelumnya!",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 } else {
                     // Simpan tiket ke database
                     db.ticketDao().insert(ticket)
                     Toast.makeText(requireContext(), "Tiket berhasil dipesan!", Toast.LENGTH_SHORT).show()
+
+                    // Muat ulang kursi yang sudah dipesan
+                    loadBookedSeats()
+
+                    // Reset pilihan kursi
+                    selectedSeats.clear()
                 }
             }
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun setupCinemaDropdown(cinemas: List<String>) {
+        val spinner = binding.spinnerCinema
+        spinner.setItems(cinemas)
+        spinner.setOnSpinnerItemSelectedListener<String> { _, _, _, item ->
+            selectedCinema = item
+            // Muat ulang kursi yang dipesan ketika bioskop dipilih
+            if (selectedTime != null) {
+                loadBookedSeats()
+            }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.O)
     private fun setupTimeOptions() {
-        val timeOptions = listOf("10:00 AM", "12:30 PM", "03:00 PM", "05:30 PM", "08:00 PM") // Contoh pilihan jam
+        val timeOptions = listOf("10:00 AM", "12:30 PM", "03:00 PM", "05:30 PM", "08:00 PM")
         val flexboxLayout: FlexboxLayout = binding.flTimes
 
-        flexboxLayout.removeAllViews() // Menghapus semua tampilan jam yang ada sebelumnya
+        flexboxLayout.removeAllViews()
 
         timeOptions.forEach { time ->
             val timeTextView = TextView(requireContext()).apply {
                 text = time
-                setPadding(32, 16, 32, 16) // Padding kiri, atas, kanan, bawah
-                setBackgroundResource(R.drawable.bg_chip) // Pastikan Anda memiliki drawable bg_chip
-                setTextColor(ContextCompat.getColor(requireContext(), R.color.white_60)) // Warna teks default
-                textSize = 14f // Set ukuran teks
+                setPadding(32, 16, 32, 16)
+                setBackgroundResource(R.drawable.bg_chip)
+                setTextColor(ContextCompat.getColor(requireContext(), R.color.white_60))
+                textSize = 14f
                 layoutParams = FlexboxLayout.LayoutParams(
                     FlexboxLayout.LayoutParams.WRAP_CONTENT,
                     FlexboxLayout.LayoutParams.WRAP_CONTENT
                 ).apply {
-                    setMargins(0, 0, 24, 24) // Margin kiri, atas, kanan, bawah
+                    setMargins(0, 0, 24, 24)
                 }
                 setOnClickListener {
-                    updateActiveTime(this) // Memperbarui waktu aktif
+                    updateActiveTime(this)
+                    // Muat ulang kursi yang dipesan ketika waktu dipilih
+                    if (selectedCinema.isNotEmpty()) {
+                        loadBookedSeats()
+                    }
                 }
             }
-            flexboxLayout.addView(timeTextView) // Menambahkan TextView ke FlexboxLayout
+            flexboxLayout.addView(timeTextView)
         }
     }
 
     private fun updateActiveTime(selectedTimeView: TextView) {
         // Reset waktu sebelumnya
         selectedTime?.apply {
-            setBackgroundResource(R.drawable.bg_chip) // Background default
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.white_60)) // Warna teks default
+            setBackgroundResource(R.drawable.bg_chip)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.white_60))
         }
 
         // Set waktu aktif
         selectedTime = selectedTimeView.apply {
-            setBackgroundResource(R.drawable.bg_chip_active) // Background aktif
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.white)) // Warna teks aktif
+            setBackgroundResource(R.drawable.bg_chip_active)
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
         }
 
-        // Tampilkan toast dengan waktu yang dipilih
-        Toast.makeText(requireContext(), "Selected time: ${selectedTime?.text}", Toast.LENGTH_SHORT).show()
     }
 
     private fun setupSeats() {
         val leftSeatsContainer: GridLayout = binding.seatsContainerLeft
         val rightSeatsContainer: GridLayout = binding.seatsContainerRight
-        leftSeatsContainer.removeAllViews() // Menghapus semua tampilan kursi yang ada sebelumnya
-        rightSeatsContainer.removeAllViews() // Menghapus semua tampilan kursi yang ada sebelumnya
+        leftSeatsContainer.removeAllViews()
+        rightSeatsContainer.removeAllViews()
 
-        // Contoh kursi yang tersedia
-        val leftSeats = listOf("A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5") // Daftar kursi kiri
-        val rightSeats = listOf("C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5") // Daftar kursi kanan
+        val leftSeats = listOf("A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5")
+        val rightSeats = listOf("C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5")
 
-        // Menambahkan kursi di sebelah kiri
         leftSeats.forEach { seat ->
             val seatTextView = createSeatTextView(seat)
-            leftSeatsContainer.addView(seatTextView) // Menambahkan TextView kursi ke GridLayout kiri
+            leftSeatsContainer.addView(seatTextView)
         }
 
-        // Menambahkan kursi di sebelah kanan
         rightSeats.forEach { seat ->
             val seatTextView = createSeatTextView(seat)
-            rightSeatsContainer.addView(seatTextView) // Menambahkan TextView kursi ke GridLayout kanan
+            rightSeatsContainer.addView(seatTextView)
         }
     }
 
@@ -262,32 +283,30 @@ class DetailMovieFragment : Fragment() {
         return TextView(requireContext()).apply {
             text = seat
             setPadding(16, 8, 16, 8)
-            // Set background berdasarkan status kursi (tersedia atau terisi)
-            // Check resource IDs and log values for debugging
-            Log.d("DetailMovieFragment", "Booked seats: $bookedSeats")
-            Log.d("DetailMovieFragment", "Current seat: $seat")
 
-            if (bookedSeats.contains(seat)) {
-                Log.d("DetailMovieFragment", "Seat $seat is booked.")
-                setBackgroundResource(R.drawable.seat_booked) // Set background kursi terisi
+            val isBooked = bookedSeats.contains(seat)
+            Log.d("DetailMovieFragment", "Seat $seat is booked: $isBooked")
+
+            if (isBooked) {
+                setBackgroundResource(R.drawable.seat_booked)
+                isClickable = false
             } else {
-                Log.d("DetailMovieFragment", "Seat $seat is available.")
-                setBackgroundResource(R.drawable.seat_available) // Set background kursi tersedia
+                setBackgroundResource(R.drawable.seat_available)
             }
-            setTextColor(ContextCompat.getColor(requireContext(), R.color.white)) // Warna teks
-            textSize = 14f // Set ukuran teks
+
+            setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+            textSize = 14f
             layoutParams = GridLayout.LayoutParams().apply {
                 width = GridLayout.LayoutParams.WRAP_CONTENT
                 height = GridLayout.LayoutParams.WRAP_CONTENT
-                setMargins(8, 8, 8, 8) // Margin kiri, atas, kanan, bawah
+                setMargins(8, 8, 8, 8)
             }
 
             setOnClickListener {
-                if (bookedSeats.contains(seat)) {
-                    // Tampilkan toast jika kursi sudah terisi saat diklik
+                if (isBooked) {
                     Toast.makeText(requireContext(), "Kursi $seat sudah terisi", Toast.LENGTH_SHORT).show()
                 } else {
-                    toggleSeatSelection(this) // Toggle pemilihan kursi
+                    toggleSeatSelection(this)
                 }
             }
         }
@@ -297,11 +316,11 @@ class DetailMovieFragment : Fragment() {
         if (selectedSeats.contains(seatTextView)) {
             // Jika kursi sudah dipilih, hapus dari daftar dan reset tampilan
             selectedSeats.remove(seatTextView)
-            seatTextView.setBackgroundResource(R.drawable.seat_available) // Set background kursi tersedia
+            seatTextView.setBackgroundResource(R.drawable.seat_available)
         } else {
             // Jika kursi belum dipilih, tambahkan ke daftar dan ubah tampilan
             selectedSeats.add(seatTextView)
-            seatTextView.setBackgroundResource(R.drawable.seat_selected) // Set background kursi terpilih
+            seatTextView.setBackgroundResource(R.drawable.seat_selected)
         }
     }
 
@@ -324,14 +343,6 @@ class DetailMovieFragment : Fragment() {
             firstDayOfWeekFromLocale()
         )
         binding.exSevenCalendar.scrollToDate(LocalDate.now())
-    }
-
-    private fun setupCinemaDropdown(cinemas: List<String>) {
-        val spinner = binding.spinnerCinema
-        spinner.setItems(cinemas)
-        spinner.setOnSpinnerItemSelectedListener<String> { _, _, _, item ->
-            // Simpan bioskop yang dipilih
-        }
     }
 
     private fun setupToolbar() {
@@ -378,6 +389,11 @@ class DetailMovieFragment : Fragment() {
                     selectedDate = day.date
                     binding.exSevenCalendar.notifyDateChanged(day.date)
                     oldDate?.let { binding.exSevenCalendar.notifyDateChanged(it) }
+
+                    // Reset selected seats and reload booked seats when the date changes
+                    selectedSeats.clear() // Clear the selected seats
+                    loadBookedSeats() // Reload booked seats for the new date
+                    setupSeats() // Refresh the seat layout
                 }
             }
         }
@@ -396,4 +412,5 @@ class DetailMovieFragment : Fragment() {
             bind.exSevenSelectedView.isVisible = day.date == selectedDate
         }
     }
+
 }

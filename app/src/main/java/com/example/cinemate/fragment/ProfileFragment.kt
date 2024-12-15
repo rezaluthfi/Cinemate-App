@@ -12,6 +12,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.view.children
 import androidx.fragment.app.Fragment
 import com.example.cinemate.R
 import com.example.cinemate.auth.LoginActivity
@@ -213,7 +214,7 @@ class ProfileFragment : Fragment() {
             dialog.dismiss()
         }
 
-        dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
+        dialogView.findViewById<TextView>(R.id.btn_cancel).setOnClickListener {
             if (field == "username") {
                 binding.etUsername.setText(originalUsername)
             } else if (field == "email") {
@@ -232,24 +233,39 @@ class ProfileFragment : Fragment() {
         val dob = prefManager.getDob()
         val password = prefManager.getPassword()
 
-        // Pastikan dob dan password tidak null sebelum membuat objek User
         if (dob == null || password == null) {
             Toast.makeText(requireContext(), "DOB atau Password tidak tersedia", Toast.LENGTH_SHORT).show()
             return
         }
 
-        // Buat objek User untuk pembaruan
         val userUpdate = User(
             _id = userId,
             username = if (field == "username") value else binding.etUsername.text.toString(),
             email = if (field == "email") value else binding.etEmail.text.toString(),
             dob = dob,
-            password = password // Pastikan password yang lama tetap di sini
+            password = password
         )
+
+        // Tampilkan ProgressBar
+        binding.progressBar.visibility = View.VISIBLE
+        // Jika progress bar tampil, atur tampila agar redup
+        if (binding.progressBar.visibility == View.VISIBLE) {
+            binding.root.children.forEach {
+                if (it.id != binding.progressBar.id) {
+                    it.alpha = 0.5f
+                }
+            }
+        }
 
         // Panggil API untuk memperbarui data pengguna
         RetrofitInstance.api.updateUser(userId, userUpdate).enqueue(object : Callback<User> {
             override fun onResponse(call: Call<User>, response: Response<User>) {
+                // Sembunyikan ProgressBar dan kembalikan tampilan ke semula
+                binding.progressBar.visibility = View.GONE
+                binding.root.children.forEach {
+                    it.alpha = 1f
+                }
+
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Berhasil memperbarui data!", Toast.LENGTH_SHORT).show()
                     if (field == "username") {
@@ -262,6 +278,9 @@ class ProfileFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<User>, t: Throwable) {
+                // Sembunyikan ProgressBar
+                binding.progressBar.visibility = View.GONE;
+
                 Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
