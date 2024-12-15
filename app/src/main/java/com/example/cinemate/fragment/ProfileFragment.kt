@@ -1,60 +1,348 @@
 package com.example.cinemate.fragment
 
+import android.content.Intent
 import android.os.Bundle
-import androidx.fragment.app.Fragment
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageView
+import android.widget.TextView
+import android.widget.Toast
+import androidx.appcompat.app.AlertDialog
+import androidx.fragment.app.Fragment
 import com.example.cinemate.R
+import com.example.cinemate.auth.LoginActivity
+import com.example.cinemate.auth.PrefManager
+import com.example.cinemate.databinding.FragmentProfileBinding
+import com.example.cinemate.model.User
+import com.example.cinemate.api.RetrofitInstance
+import retrofit2.Call
+import retrofit2.Callback
+import retrofit2.Response
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ProfileFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ProfileFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+
+    private var _binding: FragmentProfileBinding? = null
+    private val binding get() = _binding!!
+
+    private lateinit var prefManager: PrefManager
+    private var originalUsername: String? = null
+    private var originalEmail: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
+        // Inisialisasi PrefManager
+        prefManager = PrefManager(requireContext())
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_profile, container, false)
+    ): View {
+        _binding = FragmentProfileBinding.inflate(inflater, container, false)
+
+        // Tampilkan data pengguna
+        displayUserData()
+
+        // Setup tombol edit
+        setupEditButtons()
+
+        // Setup tombol logout
+        setupLogoutButton()
+
+        // Setup tombol hapus akun
+        setupDeleteAccountButton()
+
+        // Setup tombol ganti password
+        setupChangePasswordButton()
+
+        // Setup tombol ganti bahasa
+        changeLangugage()
+
+        return binding.root
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ProfileFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ProfileFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    private fun displayUserData() {
+        val email = prefManager.getEmail()
+        val username = prefManager.getUsername()
+
+        // Tampilkan data di UI
+        binding.tvFullName.text = username ?: "N/A"
+        binding.etUsername.setText(username ?: "N/A")
+        binding.etEmail.setText(email ?: "N/A")
+
+        // Simpan nilai asli untuk reset
+        originalUsername = username
+        originalEmail = email
+    }
+
+    private fun setupEditButtons() {
+        // Edit username
+        binding.ivEditUsername.setOnClickListener {
+            toggleEditText(binding.etUsername, binding.ivEditUsername)
+        }
+
+        // Edit email
+        binding.ivEditEmail.setOnClickListener {
+            toggleEditText(binding.etEmail, binding.ivEditEmail)
+        }
+    }
+
+    private fun toggleEditText(editText: EditText, icon: ImageView) {
+        val isEnabled = !editText.isEnabled
+        editText.isEnabled = isEnabled
+        if (isEnabled) {
+            editText.requestFocus()
+            icon.setImageResource(R.drawable.icon_save)
+        } else {
+            icon.setImageResource(R.drawable.icon_edit)
+            val field = if (editText.id == R.id.et_username) "username" else "email"
+            showSaveConfirmationDialog(editText.text.toString(), field)
+        }
+    }
+
+    private fun setupChangePasswordButton() {
+        binding.llChangePassword.setOnClickListener {
+            showChangePasswordDialog()
+        }
+    }
+
+    private fun showChangePasswordDialog() {
+        // Inflate dialog layout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_change_password, null)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        val etOldPassword = dialogView.findViewById<EditText>(R.id.et_old_password)
+        val etNewPassword = dialogView.findViewById<EditText>(R.id.et_new_password)
+        val etConfirmPassword = dialogView.findViewById<EditText>(R.id.et_confirm_password)
+
+        dialogView.findViewById<Button>(R.id.btn_change_password).setOnClickListener {
+            val oldPassword = etOldPassword.text.toString()
+            val newPassword = etNewPassword.text.toString()
+            val confirmPassword = etConfirmPassword.text.toString()
+
+            // Validasi input apakah kosong
+            if (oldPassword.isEmpty() || newPassword.isEmpty() || confirmPassword.isEmpty()) {
+                Toast.makeText(requireContext(), "Mohon isi semua informasi password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Validasi apakah password lama benar
+            val savedPassword = prefManager.getPassword()
+            if (savedPassword != oldPassword) {
+                Toast.makeText(requireContext(), "Password lama salah", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Validasi password baru
+            if (newPassword != confirmPassword) {
+                Toast.makeText(requireContext(), "Password baru tidak cocok", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            changePassword(oldPassword, newPassword)
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<TextView>(R.id.btn_cancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun changePassword(oldPassword: String, newPassword: String) {
+        val userId = prefManager.getUserId() ?: return
+
+        // Panggil API untuk mengubah password pengguna
+        RetrofitInstance.api.changePassword(userId, oldPassword, newPassword).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    // Update password di PrefManager
+                    prefManager.savePassword(newPassword)
+                    Toast.makeText(requireContext(), "Password berhasil diubah", Toast.LENGTH_SHORT).show()
+                } else {
+                    Log.e("API Error", response.errorBody()?.string() ?: "Unknown error")
+                    Toast.makeText(requireContext(), "Gagal mengubah password", Toast.LENGTH_SHORT).show()
                 }
             }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun changeLangugage() {
+        binding.llLanguage.setOnClickListener {
+            Toast.makeText(requireContext(), "This feature will be updated soon!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showSaveConfirmationDialog(value: String, field: String) {
+        // Inflate dialog layout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm_update_account, null)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Set dialog message
+        dialogView.findViewById<TextView>(R.id.tv_confirmation_message).text = "Apakah Anda ingin menyimpan perubahan pada $field?"
+
+        // Set button actions
+        dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
+            // Cek apakah ada perubahan
+            if ((field == "username" && value == originalUsername) || (field == "email" && value == originalEmail)) {
+                Toast.makeText(requireContext(), "Tidak ada perubahan untuk disimpan", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+                return@setOnClickListener
+            }
+
+            // Simpan perubahan
+            if (field == "username") {
+                prefManager.saveUsername(value)
+            } else if (field == "email") {
+                prefManager.saveEmail(value)
+            }
+            updateUserData(value, field)
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<Button>(R.id.btn_cancel).setOnClickListener {
+            if (field == "username") {
+                binding.etUsername.setText(originalUsername)
+            } else if (field == "email") {
+                binding.etEmail.setText(originalEmail)
+            }
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun updateUserData(value: String, field: String) {
+        val userId = prefManager.getUserId() ?: return
+
+        // Ambil dob dan password dari SharedPreferences
+        val dob = prefManager.getDob()
+        val password = prefManager.getPassword()
+
+        // Pastikan dob dan password tidak null sebelum membuat objek User
+        if (dob == null || password == null) {
+            Toast.makeText(requireContext(), "DOB atau Password tidak tersedia", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        // Buat objek User untuk pembaruan
+        val userUpdate = User(
+            _id = userId,
+            username = if (field == "username") value else binding.etUsername.text.toString(),
+            email = if (field == "email") value else binding.etEmail.text.toString(),
+            dob = dob,
+            password = password // Pastikan password yang lama tetap di sini
+        )
+
+        // Panggil API untuk memperbarui data pengguna
+        RetrofitInstance.api.updateUser(userId, userUpdate).enqueue(object : Callback<User> {
+            override fun onResponse(call: Call<User>, response: Response<User>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "Berhasil memperbarui data!", Toast.LENGTH_SHORT).show()
+                    if (field == "username") {
+                        binding.tvFullName.text = value
+                    }
+                } else {
+                    Log.e("API Error", response.errorBody()?.string() ?: "Unknown error")
+                    Toast.makeText(requireContext(), "Failed to update data", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<User>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun setupLogoutButton() {
+        binding.llLogout.setOnClickListener {
+            showLogoutConfirmationDialog()
+        }
+    }
+
+    private fun showLogoutConfirmationDialog() {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm_logout, null)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        dialogView.findViewById<TextView>(R.id.btn_cancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
+            prefManager.logout()
+            startActivity(Intent(requireContext(), LoginActivity::class.java))
+            requireActivity().finish()
+        }
+
+        dialog.show()
+    }
+
+    private fun setupDeleteAccountButton() {
+        binding.llDeleteAccount.setOnClickListener {
+            showDeleteAccountConfirmationDialog()
+        }
+    }
+
+    private fun showDeleteAccountConfirmationDialog() {
+        // Inflate dialog layout
+        val dialogView = layoutInflater.inflate(R.layout.dialog_confirm_delete_account, null)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Set button actions
+        dialogView.findViewById<Button>(R.id.btn_yes).setOnClickListener {
+            deleteUserAccount()
+            dialog.dismiss()
+        }
+
+        dialogView.findViewById<TextView>(R.id.btn_cancel).setOnClickListener {
+            dialog.dismiss()
+        }
+
+        dialog.show()
+    }
+
+    private fun deleteUserAccount() {
+        val userId = prefManager.getUserId() ?: return
+
+        // Panggil API untuk menghapus akun pengguna
+        RetrofitInstance.api.deleteUser(userId).enqueue(object : Callback<Void> {
+            override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                if (response.isSuccessful) {
+                    Toast.makeText(requireContext(), "Akun berhasil dihapus", Toast.LENGTH_SHORT).show()
+                    prefManager.logout() // Logout setelah penghapusan
+                    startActivity(Intent(requireContext(), LoginActivity::class.java))
+                    requireActivity().finish()
+                } else {
+                    Log.e("API Error", response.errorBody()?.string() ?: "Unknown error")
+                    Toast.makeText(requireContext(), "Gagal menghapus akun", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onFailure(call: Call<Void>, t: Throwable) {
+                Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }

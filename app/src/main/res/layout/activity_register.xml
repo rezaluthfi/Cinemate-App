@@ -117,6 +117,7 @@
             android:layout_marginTop="8dp"
             android:padding="16dp"
             android:background="@drawable/bg_edit_text"
+            android:focusable="false"
             android:hint="Date of Birth"
             android:textColorHint="@color/white_60"
             android:inputType="text"
