@@ -179,7 +179,7 @@
                 android:layout_height="match_parent"
                 android:layout_marginTop="8dp"
                 android:paddingHorizontal="16dp"
-                app:cv_dayViewResource="@layout/example_7_calendar_day"
+                app:cv_dayViewResource="@layout/item_calendar_seven_days"
                 app:cv_daySize="seventhWidth"
                 app:cv_orientation="horizontal" />
 

@@ -106,23 +106,54 @@ class TicketFragment : Fragment() {
     }
 
     private fun printTicket(ticket: Ticket) {
-        // Buat objek tiket history
+        // Show confirmation dialog before printing the ticket
+        showPrintConfirmationDialog(ticket)
+    }
+
+    private fun showPrintConfirmationDialog(ticket: Ticket) {
+        // Inflate layout dialog
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_confirm_print_ticket, null)
+
+        // Create dialog
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Set up dialog buttons
+        val btnYes: Button = dialogView.findViewById(R.id.btn_yes)
+        val btnCancel: TextView = dialogView.findViewById(R.id.btn_cancel)
+
+        btnYes.setOnClickListener {
+            // Proceed with ticket printing
+            printConfirmedTicket(ticket)
+            dialog.dismiss() // Close dialog
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss() // Close dialog if user cancels
+        }
+
+        dialog.show() // Show dialog
+    }
+
+    private fun printConfirmedTicket(ticket: Ticket) {
+        // Create ticket history object
         val ticketHistory = TicketHistory(
             movieTitle = ticket.movieTitle,
             selectedDate = ticket.selectedDate,
             selectedTime = ticket.selectedTime,
             selectedSeats = ticket.selectedSeats,
             selectedCinema = ticket.selectedCinema,
-            status = "Dicetak" // Status tiket
+            status = "Dicetak" // Ticket status
         )
 
-        // Simpan tiket ke history dan hapus dari tiket
+        // Save ticket to history and delete from tickets
         lifecycleScope.launch {
             val db = AppDatabase.getDatabase(requireContext())
-            db.ticketHistoryDao().insert(ticketHistory) // Simpan ke history
-            db.ticketDao().delete(ticket) // Hapus dari tiket
+            db.ticketHistoryDao().insert(ticketHistory) // Save to history
+            db.ticketDao().delete(ticket) // Remove from tickets
             Toast.makeText(requireContext(), "Tiket berhasil dicetak!", Toast.LENGTH_SHORT).show()
-            loadTickets() // Memuat ulang daftar tiket setelah penghapusan
+            loadTickets() // Reload ticket list after deletion
         }
     }
 

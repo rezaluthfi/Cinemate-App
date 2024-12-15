@@ -21,7 +21,9 @@
         android:textSize="14sp"
         android:lineHeight="24sp"
         android:textAlignment="center"
-        android:text="Anda yakin ingin menghapus riwayat pemesanan\ntiket ini?" />
+        android:text="Anda yakin ingin menghapus riwayat pemesanan\ntiket ini?"
+        android:fontFamily="@font/roboto_regular"
+        />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -37,7 +39,9 @@
             android:layout_marginEnd="48dp"
             android:text="Cancel"
             android:textColor="@color/white_60"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:fontFamily="@font/roboto_regular"
+            />
 
         <Button
             android:id="@+id/btn_yes"
@@ -47,7 +51,9 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:textAllCaps="false"
-            android:background="@drawable/bg_btn_primary" />
+            android:background="@drawable/bg_btn_primary"
+            android:fontFamily="@font/roboto_medium"
+            />
 
     </LinearLayout>
 

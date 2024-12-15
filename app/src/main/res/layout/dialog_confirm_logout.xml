@@ -10,7 +10,9 @@
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="center_horizontal"
-        android:src="@drawable/icon_alert" />
+        android:src="@drawable/icon_alert"
+        android:fontFamily="@font/roboto_regular"
+        />
 
     <TextView
         android:layout_width="wrap_content"
@@ -35,7 +37,9 @@
             android:layout_marginEnd="48dp"
             android:text="Cancel"
             android:textColor="@color/white_60"
-            android:textSize="14sp" />
+            android:textSize="14sp"
+            android:fontFamily="@font/roboto_regular"
+            />
 
         <Button
             android:id="@+id/btn_yes"
@@ -45,7 +49,9 @@
             android:textColor="@color/white"
             android:textSize="14sp"
             android:textAllCaps="false"
-            android:background="@drawable/bg_btn_primary" />
+            android:background="@drawable/bg_btn_primary"
+            android:fontFamily="@font/roboto_medium"
+            />
 
     </LinearLayout>
 

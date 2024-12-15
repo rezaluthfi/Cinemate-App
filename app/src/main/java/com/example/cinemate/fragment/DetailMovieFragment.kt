@@ -1,5 +1,6 @@
 package com.example.cinemate.fragment
 
+import android.app.Dialog
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -127,6 +128,35 @@ class DetailMovieFragment : Fragment() {
         }
     }
 
+    // Add this method to show the confirmation dialog
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun showConfirmationDialog() {
+        // Inflate layout dialog
+        val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_confirm_get_ticket, null)
+
+        // Create dialog
+        val dialog = androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        // Set up dialog buttons
+        val btnYes: Button = dialogView.findViewById(R.id.btn_yes)
+        val btnCancel: TextView = dialogView.findViewById(R.id.btn_cancel)
+
+        btnYes.setOnClickListener {
+            // Proceed with ticket booking
+            bookTicket()
+            dialog.dismiss() // Close dialog
+        }
+
+        btnCancel.setOnClickListener {
+            dialog.dismiss() // Close dialog if user cancels
+        }
+
+        dialog.show() // Show dialog
+    }
+
+    // Modify the setupGetTicketButton method to show the dialog
     @RequiresApi(Build.VERSION_CODES.O)
     private fun setupGetTicketButton() {
         val btnGetTicket: Button = binding.btnGetTicket
@@ -143,58 +173,65 @@ class DetailMovieFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            val selectedDateString = selectedDate.toString()
-            val selectedTimeString = selectedTime?.text.toString()
-            val selectedSeatsString = selectedSeats.joinToString(", ") { it.text.toString() }
+            // Show confirmation dialog
+            showConfirmationDialog()
+        }
+    }
 
-            // Buat objek tiket dengan status "Dipesan"
-            val ticket = Ticket(
-                movieTitle = movieTitle,
-                selectedDate = selectedDateString,
-                selectedTime = selectedTimeString,
-                selectedSeats = selectedSeatsString,
-                selectedCinema = selectedCinema,
-                status = "Belum Dicetak"
-            )
+    // Create a new method to handle the ticket booking logic
+    @RequiresApi(Build.VERSION_CODES.O)
+    private fun bookTicket() {
+        val selectedDateString = selectedDate.toString()
+        val selectedTimeString = selectedTime?.text.toString()
+        val selectedSeatsString = selectedSeats.joinToString(", ") { it.text.toString() }
 
-            // Cek apakah kursi yang dipilih sudah dipesan
-            lifecycleScope.launch {
-                val db = AppDatabase.getDatabase(requireContext())
-                val existingTickets = db.ticketDao().getAllTickets()
+        // Buat objek tiket dengan status "Dipesan"
+        val ticket = Ticket(
+            movieTitle = movieTitle,
+            selectedDate = selectedDateString,
+            selectedTime = selectedTimeString,
+            selectedSeats = selectedSeatsString,
+            selectedCinema = selectedCinema,
+            status = "Belum Dicetak"
+        )
 
-                val bookedSeats = existingTickets.flatMap { existingTicket ->
-                    if (existingTicket.movieTitle == movieTitle &&
-                        existingTicket.selectedDate == selectedDateString &&
-                        existingTicket.selectedTime == selectedTimeString &&
-                        existingTicket.selectedCinema == selectedCinema) {
-                        existingTicket.selectedSeats.split(", ")
-                    } else {
-                        emptyList()
-                    }
-                }
+        // Cek apakah kursi yang dipilih sudah dipesan
+        lifecycleScope.launch {
+            val db = AppDatabase.getDatabase(requireContext())
+            val existingTickets = db.ticketDao().getAllTickets()
 
-                // Cek apakah ada kursi yang dipilih sudah dipesan
-                val alreadyBookedSeats = selectedSeats
-                    .map { it.text.toString() }
-                    .filter { bookedSeats.contains(it) }
-
-                if (alreadyBookedSeats.isNotEmpty()) {
-                    Toast.makeText(
-                        requireContext(),
-                        "Kursi ${alreadyBookedSeats.joinToString(", ")} sudah dipesan sebelumnya!",
-                        Toast.LENGTH_SHORT
-                    ).show()
+            val bookedSeats = existingTickets.flatMap { existingTicket ->
+                if (existingTicket.movieTitle == movieTitle &&
+                    existingTicket.selectedDate == selectedDateString &&
+                    existingTicket.selectedTime == selectedTimeString &&
+                    existingTicket.selectedCinema == selectedCinema) {
+                    existingTicket.selectedSeats.split(", ")
                 } else {
-                    // Simpan tiket ke database
-                    db.ticketDao().insert(ticket)
-                    Toast.makeText(requireContext(), "Tiket berhasil dipesan!", Toast.LENGTH_SHORT).show()
-
-                    // Muat ulang kursi yang sudah dipesan
-                    loadBookedSeats()
-
-                    // Reset pilihan kursi
-                    selectedSeats.clear()
+                    emptyList()
                 }
+            }
+
+            // Cek apakah ada kursi yang dipilih sudah dipesan
+            val alreadyBookedSeats = selectedSeats
+                .map { it.text.toString() }
+                .filter { bookedSeats.contains(it) }
+
+            if (alreadyBookedSeats.isNotEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    "Kursi ${alreadyBookedSeats.joinToString(", ")} sudah dipesan sebelumnya!",
+                    Toast.LENGTH_SHORT
+                ).show()
+            } else {
+                // Simpan tiket ke database
+                db.ticketDao().insert(ticket)
+                Toast.makeText(requireContext(), "Tiket berhasil dipesan!", Toast.LENGTH_SHORT).show()
+
+                // Muat ulang kursi yang sudah dipesan
+                loadBookedSeats()
+
+                // Reset pilihan kursi
+                selectedSeats.clear()
             }
         }
     }
@@ -265,8 +302,8 @@ class DetailMovieFragment : Fragment() {
         leftSeatsContainer.removeAllViews()
         rightSeatsContainer.removeAllViews()
 
-        val leftSeats = listOf("A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5")
-        val rightSeats = listOf("C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5")
+        val leftSeats = listOf("A1", "A2", "A3", "A4", "A5", "B1", "B2", "B3", "B4", "B5", "C1", "C2", "C3", "C4", "C5", "D1", "D2", "D3", "D4", "D5")
+        val rightSeats = listOf("E1", "E2", "E3", "E4", "E5", "F1", "F2", "F3", "F4", "F5", "G1", "G2", "G3", "G4", "G5", "H1", "H2", "H3", "H4", "H5")
 
         leftSeats.forEach { seat ->
             val seatTextView = createSeatTextView(seat)

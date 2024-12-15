@@ -8,6 +8,15 @@
     android:paddingHorizontal="16dp"
     tools:context=".fragment.HistoryFragment">
 
+    <!-- ProgressBar untuk menunjukkan loading -->
+    <ProgressBar
+        android:id="@+id/progress_bar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="48dp"
+        android:layout_gravity="center"
+        android:visibility="gone" />
+
     <TextView
         android:id="@+id/tv_label_my_ticket"
         android:layout_width="wrap_content"

@@ -160,9 +160,13 @@ class ProfileFragment : Fragment() {
     private fun changePassword(oldPassword: String, newPassword: String) {
         val userId = prefManager.getUserId() ?: return
 
+        // Tampilkan ProgressBar dan dim UI
+        showProgressBar()
+
         // Panggil API untuk mengubah password pengguna
         RetrofitInstance.api.changePassword(userId, oldPassword, newPassword).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                hideProgressBar()
                 if (response.isSuccessful) {
                     // Update password di PrefManager
                     prefManager.savePassword(newPassword)
@@ -174,6 +178,7 @@ class ProfileFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
+                hideProgressBar()
                 Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -246,25 +251,13 @@ class ProfileFragment : Fragment() {
             password = password
         )
 
-        // Tampilkan ProgressBar
-        binding.progressBar.visibility = View.VISIBLE
-        // Jika progress bar tampil, atur tampila agar redup
-        if (binding.progressBar.visibility == View.VISIBLE) {
-            binding.root.children.forEach {
-                if (it.id != binding.progressBar.id) {
-                    it.alpha = 0.5f
-                }
-            }
-        }
+        // Tampilkan ProgressBar dan dim UI
+        showProgressBar()
 
         // Panggil API untuk memperbarui data pengguna
         RetrofitInstance.api.updateUser(userId, userUpdate).enqueue(object : Callback<User> {
             override fun onResponse(call: Call<User>, response: Response<User>) {
-                // Sembunyikan ProgressBar dan kembalikan tampilan ke semula
-                binding.progressBar.visibility = View.GONE
-                binding.root.children.forEach {
-                    it.alpha = 1f
-                }
+                hideProgressBar()
 
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Berhasil memperbarui data!", Toast.LENGTH_SHORT).show()
@@ -278,9 +271,7 @@ class ProfileFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<User>, t: Throwable) {
-                // Sembunyikan ProgressBar
-                binding.progressBar.visibility = View.GONE;
-
+                hideProgressBar()
                 Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
@@ -340,9 +331,13 @@ class ProfileFragment : Fragment() {
     private fun deleteUserAccount() {
         val userId = prefManager.getUserId() ?: return
 
+        // Tampilkan ProgressBar dan dim UI
+        showProgressBar()
+
         // Panggil API untuk menghapus akun pengguna
         RetrofitInstance.api.deleteUser(userId).enqueue(object : Callback<Void> {
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
+                hideProgressBar()
                 if (response.isSuccessful) {
                     Toast.makeText(requireContext(), "Akun berhasil dihapus", Toast.LENGTH_SHORT).show()
                     prefManager.logout() // Logout setelah penghapusan
@@ -355,9 +350,29 @@ class ProfileFragment : Fragment() {
             }
 
             override fun onFailure(call: Call<Void>, t: Throwable) {
+                hideProgressBar()
                 Toast.makeText(requireContext(), "Error: ${t.message}", Toast.LENGTH_SHORT).show()
             }
         })
+    }
+
+    private fun showProgressBar() {
+        binding.progressBar.visibility = View.VISIBLE
+        dimUI(true)
+    }
+
+    private fun hideProgressBar() {
+        binding.progressBar.visibility = View.GONE
+        dimUI(false)
+    }
+
+    private fun dimUI(dim: Boolean) {
+        val alpha = if (dim) 0.5f else 1f
+        binding.root.children.forEach {
+            if (it.id != binding.progressBar.id) {
+                it.alpha = alpha
+            }
+        }
     }
 
     override fun onDestroyView() {

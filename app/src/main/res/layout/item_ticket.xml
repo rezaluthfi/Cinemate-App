@@ -171,11 +171,11 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
                     android:layout_marginEnd="16dp"
-                    android:background="@drawable/bg_btn_secondary_danger"
+                    android:background="@drawable/bg_btn_secondary"
                     app:backgroundTint="@null"
                     android:text="Batalkan"
                     android:textSize="14sp"
-                    android:textColor="@color/danger"
+                    android:textColor="@color/white_60"
                     android:textAllCaps="false"
                     android:fontFamily="@font/roboto_regular" />
 
@@ -189,20 +189,17 @@
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
                     android:background="@drawable/bg_btn_primary"
-                    android:text="Cetak"
+                    android:text="Cetak Tiket"
                     android:textSize="14sp"
                     android:textColor="@color/white"
                     android:textAllCaps="false"
-                    android:fontFamily="@font/roboto_regular" />
+                    android:fontFamily="@font/roboto_bold" />
 
 
             </RelativeLayout>
 
-
-
         </LinearLayout>
 
     </androidx.cardview.widget.CardView>
-
 
 </LinearLayout>
