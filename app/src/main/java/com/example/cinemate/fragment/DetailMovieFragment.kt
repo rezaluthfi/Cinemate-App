@@ -18,10 +18,10 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import com.bumptech.glide.Glide
 import com.example.cinemate.R
-import com.example.cinemate.databinding.Example7CalendarDayBinding
 import com.example.cinemate.databinding.FragmentDetailMovieBinding
-import com.example.cinemate.model.AppDatabase
-import com.example.cinemate.model.Ticket
+import com.example.cinemate.data.model.AppDatabase
+import com.example.cinemate.data.model.Ticket
+import com.example.cinemate.databinding.ItemCalendarSevenDaysBinding
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -376,7 +376,7 @@ class DetailMovieFragment : Fragment() {
 
     @RequiresApi(Build.VERSION_CODES.O)
     inner class DayViewContainer(view: View) : ViewContainer(view) {
-        val bind = Example7CalendarDayBinding.bind(view)
+        val bind = ItemCalendarSevenDaysBinding.bind(view)
         lateinit var day: WeekDay
 
         init {

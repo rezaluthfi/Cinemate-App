@@ -10,7 +10,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.cinemate.R
 import com.example.cinemate.databinding.ItemMovieBinding
-import com.example.cinemate.model.Movie
+import com.example.cinemate.data.model.Movie
 import com.google.android.flexbox.FlexboxLayout
 
 class GenreMoviesAdapter(

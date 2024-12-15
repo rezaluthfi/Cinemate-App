@@ -18,7 +18,7 @@ import com.example.cinemate.R
 import com.example.cinemate.auth.LoginActivity
 import com.example.cinemate.auth.PrefManager
 import com.example.cinemate.databinding.FragmentProfileBinding
-import com.example.cinemate.model.User
+import com.example.cinemate.data.model.User
 import com.example.cinemate.api.RetrofitInstance
 import retrofit2.Call
 import retrofit2.Callback

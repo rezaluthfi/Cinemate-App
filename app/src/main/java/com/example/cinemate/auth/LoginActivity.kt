@@ -5,10 +5,10 @@ import android.os.Bundle
 import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.example.cinemate.MainActivity
+import com.example.cinemate.ui.MainActivity
 import com.example.cinemate.api.RetrofitInstance
 import com.example.cinemate.databinding.ActivityLoginBinding
-import com.example.cinemate.model.User
+import com.example.cinemate.data.model.User
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

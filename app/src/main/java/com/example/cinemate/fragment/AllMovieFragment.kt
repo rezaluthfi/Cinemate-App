@@ -23,7 +23,7 @@ import com.example.cinemate.R
 import com.example.cinemate.adapter.AllMoviesAdapter
 import com.example.cinemate.api.RetrofitInstance
 import com.example.cinemate.databinding.FragmentAllMovieBinding
-import com.example.cinemate.model.Movie
+import com.example.cinemate.data.model.Movie
 import com.google.android.flexbox.FlexboxLayout
 import com.google.android.material.bottomappbar.BottomAppBar
 import com.google.android.material.bottomnavigation.BottomNavigationView

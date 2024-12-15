@@ -5,7 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.cinemate.databinding.ItemTrendingMovieBinding
-import com.example.cinemate.model.Movie
+import com.example.cinemate.data.model.Movie
 
 class TrendingMoviesAdapter(
     private var trendingMovies: List<Movie>,

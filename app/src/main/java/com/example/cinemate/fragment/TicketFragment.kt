@@ -14,9 +14,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.cinemate.R
 import com.example.cinemate.adapter.TicketAdapter
 import com.example.cinemate.databinding.FragmentTicketBinding
-import com.example.cinemate.model.AppDatabase
-import com.example.cinemate.model.Ticket
-import com.example.cinemate.model.TicketHistory
+import com.example.cinemate.data.model.AppDatabase
+import com.example.cinemate.data.model.Ticket
+import com.example.cinemate.data.model.TicketHistory
 import kotlinx.coroutines.launch
 
 class TicketFragment : Fragment() {

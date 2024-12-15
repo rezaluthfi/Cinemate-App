@@ -5,7 +5,7 @@ import android.text.TextUtils
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.cinemate.api.RetrofitInstance
-import com.example.cinemate.model.User
+import com.example.cinemate.data.model.User
 import com.example.cinemate.databinding.ActivityRegisterBinding
 import com.google.android.material.datepicker.MaterialDatePicker
 import retrofit2.Call

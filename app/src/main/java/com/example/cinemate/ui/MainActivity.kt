@@ -1,11 +1,11 @@
-package com.example.cinemate
+package com.example.cinemate.ui
 
 import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.example.cinemate.R
 import com.example.cinemate.databinding.ActivityMainBinding
 
 class MainActivity : AppCompatActivity() {

@@ -1,4 +1,4 @@
-package com.example.cinemate.model
+package com.example.cinemate.data.model
 
 data class Movie(
     val _id: String? = null,

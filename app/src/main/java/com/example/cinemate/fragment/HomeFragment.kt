@@ -17,7 +17,7 @@ import com.example.cinemate.adapter.LatestMoviesAdapter
 import com.example.cinemate.adapter.TrendingMoviesAdapter
 import com.example.cinemate.api.RetrofitInstance
 import com.example.cinemate.databinding.FragmentHomeBinding
-import com.example.cinemate.model.Movie
+import com.example.cinemate.data.model.Movie
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response

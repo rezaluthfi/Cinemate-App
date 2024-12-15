@@ -1,12 +1,10 @@
-package com.example.cinemate
+package com.example.cinemate.ui
 
 import android.content.Intent
 import android.os.Bundle
 import android.os.Handler
 import androidx.appcompat.app.AppCompatActivity
-import com.example.cinemate.MainActivity
 import com.example.cinemate.R
-import com.example.cinemate.auth.LoginActivity
 import com.example.cinemate.auth.PrefManager
 import com.example.cinemate.onboarding.OnboardingActivity
 

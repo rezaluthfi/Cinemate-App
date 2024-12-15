@@ -1,9 +1,11 @@
-package com.example.cinemate.model
+package com.example.cinemate.data.model
 
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
+import com.example.cinemate.data.dao.TicketDao
+import com.example.cinemate.data.dao.TicketHistoryDao
 
 @Database(entities = [Ticket::class, TicketHistory::class], version = 3) // Pastikan versi diupdate
 abstract class AppDatabase : RoomDatabase() {

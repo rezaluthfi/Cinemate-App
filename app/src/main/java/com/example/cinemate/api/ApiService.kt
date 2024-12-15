@@ -1,6 +1,6 @@
 package com.example.cinemate.api
 
-import com.example.cinemate.model.User
+import com.example.cinemate.data.model.User
 import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.DELETE

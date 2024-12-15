@@ -4,7 +4,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.cinemate.databinding.ItemTicketHistoryBinding
-import com.example.cinemate.model.TicketHistory
+import com.example.cinemate.data.model.TicketHistory
 
 class TicketHistoryAdapter(
     private val ticketHistories: List<TicketHistory>,
